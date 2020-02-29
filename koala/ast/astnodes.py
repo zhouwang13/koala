@@ -3,7 +3,8 @@ from __future__ import print_function
 
 from networkx import NetworkXError
 
-from openpyxl.compat import unicode
+#from openpyxl.compat import unicode
+unicode = str
 
 from koala.excellib import FUNCTION_MAP, IND_FUN
 from koala.utils import is_range, split_range, split_address, resolve_range
@@ -11,7 +12,7 @@ from koala.ExcelError import *
 
 
 def to_str(my_string):
-    # `unicode` != `str` in Python2. See `from openpyxl.compat import unicode`
+    # `unicode` != `str` in Python2. See `unicode = str`
     if type(my_string) == str and str != unicode:
         return unicode(my_string, 'utf-8')
     elif type(my_string) == unicode:
@@ -45,7 +46,7 @@ class ASTNode(object):
     def children(self, ast):
         try:
             args = ast.predecessors(self)
-            args = sorted(args, key=lambda x: ast.node[x]['pos'])
+            args = sorted(args, key=lambda x: ast.nodes[x]['pos'])
         except NetworkXError:
             args = ''
         return args
@@ -58,7 +59,7 @@ class ASTNode(object):
         found = False
         current = self
 
-        special_functions = ['sumproduct']
+        special_functions = ['sumproduct','*','/','+','-']
         # special_functions = ['sumproduct', 'match']
         break_functions = ['index']
 

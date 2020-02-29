@@ -7,7 +7,8 @@ import networkx
 from networkx.classes.digraph import DiGraph
 from networkx.readwrite import json_graph
 from networkx.drawing.nx_pydot import write_dot
-from openpyxl.compat import unicode
+#from openpyxl.compat import unicode
+unicode = str
 
 from koala.Cell import Cell
 from koala.Range import RangeCore, RangeFactory
@@ -245,6 +246,10 @@ def export_to_dot(self,fname):
 ########### plotting #################
 def plot_graph(self):
     import matplotlib.pyplot as plt
+
+    plt.figure(num=None, figsize=(20, 20), dpi=80)
+    plt.axis('off')
+    fig = plt.figure(1)
 
     pos=networkx.spring_layout(self.G,iterations=2000)
     #pos=networkx.spectral_layout(G)

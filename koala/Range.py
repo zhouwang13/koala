@@ -4,7 +4,8 @@ from koala.CellBase import CellBase
 from koala.ExcelError import ErrorCodes, ExcelError
 from koala.utils import *
 
-from openpyxl.compat import unicode
+#from openpyxl.compat import unicode
+unicode = str
 
 
 # WARNING: Range should never be imported directly. Import Range from excelutils instead.
@@ -162,7 +163,7 @@ class RangeCore(dict):
         try:
             sheet = cells[0].split('!')[0]
         except:
-            sheet = None
+            sheet = None,
 
         # dont allow messing with these params
         if type(reference) == list:
@@ -506,7 +507,7 @@ class RangeCore(dict):
 
             vals = [function(
                 x.value if isinstance(x, CellBase) else x,
-                y.value if isinstance(x, CellBase) else y
+                y.value if isinstance(y, CellBase) else y
             ) for x, y in zip(first.cells, second.cells)]
 
             return RangeCore(

@@ -11,6 +11,7 @@ from __future__ import absolute_import, division
 import itertools
 import numpy as np
 import scipy.optimize
+from scipy.stats import linregress
 import datetime
 import random
 from math import log, ceil
@@ -18,7 +19,8 @@ from decimal import Decimal, ROUND_UP, ROUND_HALF_UP
 from calendar import monthrange
 from dateutil.relativedelta import relativedelta
 
-from openpyxl.compat import unicode
+#from openpyxl.compat import unicode
+unicode = str
 
 from koala.utils import *
 from koala.Range import RangeCore as Range
@@ -64,13 +66,17 @@ IND_FUN = [
     "COUNTIFS",
     "DATE",
     "EOMONTH",
+    "EXP",
     "GAMMALN",  # see lgamma, a Python function, redefined in function map above
     "IF",  # see astnodes.py, not defined here
     "IFERROR",
     "INDEX",  # see astnodes.py
+    "INTERCEPT",
     "IRR",
+    "ISERROR",
     "ISBLANK",
     "ISNA",
+    "ISNUMBER",
     "ISTEXT",
     "LINEST",
     "LOG",  # Python function, not defined here
@@ -82,6 +88,7 @@ IND_FUN = [
     "MIN",  # see xmin, redefined in function map above
     "MOD",
     "MONTH",
+    "NA",
     "NPV",
     "OFFSET",  # see astnodes.py
     "OR",  # see astnodes.py, not defined here
@@ -95,6 +102,7 @@ IND_FUN = [
     "ROUNDUP",
     "ROWS",
     "SLN",
+    "SLOPE",
     "SQRT",
     "SUM",  # see xsum, redefined in function map above
     "SUMIF",
@@ -137,6 +145,27 @@ def choose(index_num, *values): # Excel reference: https://support.office.com/en
         return ExcelError('#VALUE!', '%s must not be larger than the number of values: %s' % (str(index_num), len(values)))
     else:
         return values[index - 1]
+
+def intercept(*ranges):
+    range_list = list(ranges)
+
+    for r in range_list: # if a range has no values (i.e if it's empty)
+        if len(r.values) == 0:
+            return 0
+
+    for range in range_list:
+        for item in range.values:
+            # If there is an ExcelError inside a Range, sumproduct should output an ExcelError
+            if isinstance(item, ExcelError):
+                return ExcelError("#N/A", "ExcelErrors are present in the sumproduct items")
+
+    reduce(check_length, range_list) # check that all ranges have the same size
+
+    X = range_list[0].values
+    Y = range_list[1].values
+    slope, intercept, r_value, p_value, std_err = linregress(X, Y)
+
+    return intercept
 
 
 def columns(array):
@@ -323,6 +352,8 @@ def eomonth(start_date, months):  # Excel reference: https://support.office.com/
 
     return res
 
+def exp(value):
+    return np.exp(value)
 
 def iferror(value, value_if_error):  # Excel reference: https://support.office.com/en-us/article/IFERROR-function-c526fd07-caeb-47b8-8bb6-63f3e417f611
 
@@ -431,10 +462,11 @@ def irr(values, guess = None):
         except Exception as e:
             return ExcelError('#NUM!', e)
 
+def iserror(value):
+    return isna(value)
 
 def isblank(value):
     return value is None
-
 
 def isna(value):
     # This function might need more solid testing
@@ -444,6 +476,8 @@ def isna(value):
     except:
         return True
 
+def isnumber(value):
+    return type(value) == float
 
 def istext(value):
     return type(value) == str
@@ -780,6 +814,27 @@ def sln(cost, salvage, life): # Excel reference: https://support.office.com/en-u
             return arg
 
     return (cost - salvage) / life
+
+def slope(*ranges):
+    range_list = list(ranges)
+
+    for r in range_list: # if a range has no values (i.e if it's empty)
+        if len(r.values) == 0:
+            return 0
+
+    for range in range_list:
+        for item in range.values:
+            # If there is an ExcelError inside a Range, sumproduct should output an ExcelError
+            if isinstance(item, ExcelError):
+                return ExcelError("#N/A", "ExcelErrors are present in the sumproduct items")
+
+    reduce(check_length, range_list) # check that all ranges have the same size
+
+    X = range_list[0].values
+    Y = range_list[1].values
+    slope, intercept, r_value, p_value, std_err = linregress(X, Y)
+
+    return slope
 
 
 # https://support.office.com/en-ie/article/sqrt-function-654975c2-05c4-4831-9a24-2c65e4040fdf

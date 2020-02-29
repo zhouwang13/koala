@@ -17,7 +17,8 @@ import os.path
 import networkx
 from networkx.readwrite import json_graph
 
-from openpyxl.compat import unicode
+#from openpyxl.compat import unicode
+unicode = str
 
 
 class Spreadsheet(object):
@@ -405,7 +406,7 @@ class Spreadsheet(object):
                     reference = self.named_ranges[i]
                     if is_range(reference):
 
-                        rng = self.Range(reference)
+                        rng = self.range(reference)
                         virtual_cell = Cell(i, None, value = rng, formula = reference, is_range = True, is_named_range = True )
                         new_cellmap[i] = virtual_cell
                         subgraph.add_node(virtual_cell) # edges are not needed here since the input here is not in the calculation chain
@@ -417,7 +418,7 @@ class Spreadsheet(object):
                         subgraph.add_node(virtual_cell) # edges are not needed here since the input here is not in the calculation chain
                 else:
                     if is_range(i):
-                        rng = self.Range(i)
+                        rng = self.range(i)
                         virtual_cell = Cell(i, None, value = rng, formula = o, is_range = True, is_named_range = True )
                         new_cellmap[i] = virtual_cell
                         subgraph.add_node(virtual_cell) # edges are not needed here since the input here is not in the calculation chain
@@ -440,7 +441,7 @@ class Spreadsheet(object):
             reference = self.named_ranges[n]
             if is_range(reference):
                 if 'OFFSET' not in reference:
-                    my_range = self.Range(reference)
+                    my_range = self.range(reference)
                     self.cellmap[n] = Cell(n, None, value = my_range, formula = reference, is_range = True, is_named_range = True )
                 else:
                     self.cellmap[n] = Cell(n, None, value = None, formula = reference, is_range = False, is_named_range = True )
@@ -531,6 +532,9 @@ class Spreadsheet(object):
             return {"formula":pointer_string, "value": pointer_value, "expression_type": expression_type}
         else:
             for c in node.children(ast):
+                print(ast)
+                print(c)
+                print(cell)
                 results.append(self.eval_pointers_from_ast(ast, c, cell))
         return list(flatten(results, only_lists = True))
 
@@ -662,6 +666,9 @@ class Spreadsheet(object):
 
     def dump(self, fname):
         dump(self, fname)
+    
+    def plot_graph(self):
+        plot_graph(self)
 
     @staticmethod
     def load(fname):
@@ -933,7 +940,7 @@ class Spreadsheet(object):
                     if '!' in addr2:
                         addr2 = addr2.split('!')[1]
 
-                    return self.Range('%s:%s' % (addr1, addr2))
+                    return self.range('%s:%s' % (addr1, addr2))
             else:  # addr1 = Sheet1!A1, addr2 = Sheet1!A2
                 if '!' in addr1:
                     sheet = addr1.split('!')[0]
@@ -941,7 +948,7 @@ class Spreadsheet(object):
                     sheet = None
                 if '!' in addr2:
                     addr2 = addr2.split('!')[1]
-                return self.Range('%s:%s' % (addr1, addr2))
+                return self.range('%s:%s' % (addr1, addr2))
 
     def update_range(self, range):
         # This function loops through its Cell references to evaluate the ones that need so

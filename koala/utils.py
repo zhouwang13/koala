@@ -13,7 +13,8 @@ except ImportError:  # fix for Python 2.7
 from six import string_types
 from copy import deepcopy
 
-from openpyxl.compat import unicode
+#from openpyxl.compat import unicode
+unicode = str
 
 from .ExcelError import ExcelError
 
@@ -150,7 +151,7 @@ def resolve_range(rng, should_flatten = False, sheet=''):
     else:
         pass
 
-    # `unicode` != `str` in Python2. See `from openpyxl.compat import unicode`
+    # `unicode` != `str` in Python2. See `unicode = str`
     if type(sheet) == str and str != unicode:
         sheet = unicode(sheet, 'utf-8')
     if type(rng) == str and str != unicode:
